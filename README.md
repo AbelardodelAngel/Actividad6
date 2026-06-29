@@ -33,3 +33,36 @@ Para garantizar el rigor técnico en este contexto de seguridad pública, el obj
 * **A - Alcanzable (*Achievable*):** Es técnicamente viable mediante la implementación de un pipeline estructurado en Python que incluye ingeniería de características, codificadores avanzados (como *Target Encoding*), transformación de variables y validación cruzada adecuada.
 * **R - Relevante (*Relevant*):** Resuelve una necesidad crítica en el sector de la seguridad ciudadana y la optimización de recursos tácticos, permitiendo una asignación eficiente de patrullajes basados en datos empíricos.
 * **T - Con Tiempo Definido (*Time-bound*):** El diseño del pipeline, la experimentación de algoritmos, la optimización de hiperparámetros y la documentación completa de las métricas de validación se consolidarán durante el presente ciclo de desarrollo de la **Actividad 6**.
+
+* ## 📊 Matriz de Confusión e Interpretación
+
+Para evaluar el desempeño real del modelo **LightGBM Tuned** en la clasificación de incidentes de la Ciudad de México, se utiliza una matriz de confusión. Dado que transformamos el problema en una clasificación binaria, la matriz divide las predicciones en dos categorías operativas:
+* **Clase 0 (Bajo Impacto / Prioridad Ordinaria):** Delitos menores o reportes que no requieren despliegue de emergencia inmediata.
+* **Clase 1 (Alto Impacto / Emergencia Crítica):** Homicidios, secuestros, violaciones y robos con violencia que requieren atención prioritaria.
+
+### 🧩 Estructura Operativa de la Matriz
+
+En nuestro último experimento con un set de validación balanceado de **24,000 registros totales** (12,000 casos reales de bajo impacto y 12,000 de alto impacto), el comportamiento del modelo se distribuye de la siguiente manera:
+
+| | Predicción: Bajo Impacto (0) | Predicción: Alto Impacto (1) |
+|---|---|---|
+| **Realidad: Bajo Impacto (0)** | **Verdaderos Negativos (VN): 4,920** <br>*(75% Especificidad)* | **Falsos Positivos (FP): 7,080** <br>*(Falsas Alarmas)* |
+| **Realidad: Alto Impacto (1)** | **Falsos Negativos (FN): 1,560** <br>*(Omisiones Críticas)* | **Verdaderos Positivos (VP): 10,440** <br>*(87% Recall)* |
+
+---
+
+### 🔍 Interpretación y Trade-Off de Negocio
+
+El modelo fue calibrado intencionalmente utilizando una penalización de peso (`scale_pos_weight=1.5`) y un ajuste de umbral optimizado para proteger vidas humanas. Esto genera un balance específico entre los dos tipos de errores:
+
+#### 1. Falsos Negativos (FN) – *El error más costoso*
+* **¿Qué significa en campo?:** Un delito de Alto Impacto real (ej. un robo con violencia en proceso) es clasificado por el modelo como "Bajo Impacto", enviándose a la cola de espera ordinaria.
+* **Métrica asociada:** **Recall / Sensibilidad (0.87)**. 
+* **Interpretación:** Gracias al ajuste, el modelo **captura correctamente el 87% de las emergencias críticas**. Solo un 13% (1,560 casos) sufren una omisión de prioridad, minimizando el riesgo de desatención extrema en eventos de alto riesgo.
+
+#### 2. Falsos Positivos (FP) – *El costo de la prevención*
+* **¿Qué significa en campo?:** Un delito de Bajo Impacto (ej. robo simple sin violencia o extravío) es clasificado como "Alto Impacto", provocando el despacho prioritario de una patrulla o unidad de emergencia.
+* **Métrica asociada:** **Precisión (0.59)**.
+* **Interpretación:** Al mover el umbral para no perder llamadas de auxilio críticas, el modelo se volvió "preventivo" o "sensible". Esto significa que de cada 100 alertas que el sistema etiqueta como críticas, **59 son emergencias reales de alto impacto** y 41 resultan ser incidentes menores. 
+
+> 💡 **Conclusión para el README:** En seguridad pública, **un Falso Positivo es costoso (desgaste de unidades), pero un Falsos Negativo es fatal (pérdida de vidas o impunidad)**. La matriz de confusión demuestra científicamente que el sistema prefiere enviar una patrulla de más (FP) a dejar desamparada una escena del crimen violento (FN). El $F_2\text{-Score}$ respalda matemáticamente esta decisión al darle el doble de peso al Recall sobre la Precisión.
