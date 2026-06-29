@@ -40,35 +40,38 @@ Para evaluar el desempeño real del modelo **LightGBM Tuned** en la clasificaci�
 * **Clase 0 (Bajo Impacto / Prioridad Ordinaria):** Delitos menores o reportes que no requieren despliegue de emergencia inmediata.
 * **Clase 1 (Alto Impacto / Emergencia Crítica):** Homicidios, secuestros, violaciones y robos con violencia que requieren atención prioritaria.
 
+## 📊 Matriz de Confusión e Interpretación
+
+Para evaluar el desempeño real del modelo **LightGBM Tuned** en la clasificación de incidentes de la Ciudad de México, se utiliza una matriz de confusión. Dado que transformamos el problema en una clasificación binaria, la matriz divide las predicciones en dos categorías operativas:
+* **Clase 0 (Bajo Impacto / Prioridad Ordinaria):** Delitos menores o reportes que no requieren despliegue de emergencia inmediata.
+* **Clase 1 (Alto Impacto / Emergencia Crítica):** Homicidios, secuestros, violaciones y robos con violencia que requieren atención prioritaria.
+
 ### 🧩 Estructura Operativa de la Matriz
 
-En nuestro último experimento con un set de validación balanceado de **24,000 registros totales** (12,000 casos reales de bajo impacto y 12,000 de alto impacto), el comportamiento del modelo se distribuye de la siguiente manera:
+Con base en la última evaluación realizada sobre el set de validación (24,000 registros totales distribuidos en clases balanceadas de 12,000 casos reales cada una), el comportamiento exacto del modelo es el siguiente:
 
 | | Predicción: Bajo Impacto (0) | Predicción: Alto Impacto (1) |
 |---|---|---|
-| **Realidad: Bajo Impacto (0)** | **Verdaderos Negativos (VN): 4,920** <br>*(75% Especificidad)* | **Falsos Positivos (FP): 7,080** <br>*(Falsas Alarmas)* |
-| **Realidad: Alto Impacto (1)** | **Falsos Negativos (FN): 1,560** <br>*(Omisiones Críticas)* | **Verdaderos Positivos (VP): 10,440** <br>*(87% Recall)* |
+| **Realidad: Bajo Impacto (0)** | **Verdaderos Negativos (VN): 3,033** <br>*(Casos ordinarios filtrados)* | **Falsos Positivos (FP): 8,967** <br>*(Falsas Alarmas Preventivas)* |
+| **Realidad: Alto Impacto (1)** | **Falsos Negativos (FN): 388** <br>*(Omisiones Críticas Mínimas)* | **Verdaderos Positivos (VP): 11,612** <br>*(Emergencias Capturadas)* |
 
-<img width="784" height="584" alt="image" src="https://github.com/user-attachments/assets/70e13a77-6f65-4a7f-9cb1-95a7de2aad20" />
 ---
 
 ### 🔍 Interpretación y Trade-Off de Negocio
 
 El modelo fue calibrado intencionalmente utilizando una penalización de peso (`scale_pos_weight=1.5`) y un ajuste de umbral optimizado para proteger vidas humanas. Esto genera un balance específico entre los dos tipos de errores:
 
-#### 1. Falsos Negativos (FN) – *El error más costoso*
+#### 1. Falsos Negativos (FN) – *Reducidos al Mínimo Crítico*
 * **¿Qué significa en campo?:** Un delito de Alto Impacto real (ej. un robo con violencia en proceso) es clasificado por el modelo como "Bajo Impacto", enviándose a la cola de espera ordinaria.
-* **Métrica asociada:** **Recall / Sensibilidad (0.87)**. 
-* **Interpretación:** Gracias al ajuste, el modelo **captura correctamente el 87% de las emergencias críticas**. Solo un 13% (1,560 casos) sufren una omisión de prioridad, minimizando el riesgo de desatención extrema en eventos de alto riesgo.
+* **Métrica asociada:** **Recall / Sensibilidad (0.967 / 96.7%)**
+* **Interpretación:** Gracias al ajuste preventivo, el modelo **captura correctamente el 96.7% de las emergencias críticas**. Solo 388 casos de 12,000 sufren una omisión de prioridad. Esto reduce el riesgo de desatención extrema en la Ciudad de México a niveles mínimos, cumpliendo con creces el objetivo de protección ciudadana.
 
-#### 2. Falsos Positivos (FP) – *El costo de la prevención*
+#### 2. Falsos Positivos (FP) – *El costo de la postura preventiva*
 * **¿Qué significa en campo?:** Un delito de Bajo Impacto (ej. robo simple sin violencia o extravío) es clasificado como "Alto Impacto", provocando el despacho prioritario de una patrulla o unidad de emergencia.
-* **Métrica asociada:** **Precisión (0.59)**.
-* **Interpretación:** Al mover el umbral para no perder llamadas de auxilio críticas, el modelo se volvió "preventivo" o "sensible". Esto significa que de cada 100 alertas que el sistema etiqueta como críticas, **59 son emergencias reales de alto impacto** y 41 resultan ser incidentes menores. 
+* **Métrica asociada:** **Precisión (0.564 / 56.4%)**
+* **Interpretación:** Al mover el umbral para asegurar que ninguna llamada de auxilio legítima se pierda, el modelo asume un rol de "protección activa". De cada 100 alertas que el sistema etiqueta como críticas, **56 son emergencias reales de alto impacto** y 44 resultan ser incidentes menores que reciben un despacho prioritario de forma preventiva.
 
-> 💡 **Conclusión para el README:** En seguridad pública, **un Falso Positivo es costoso (desgaste de unidades), pero un Falsos Negativo es fatal (pérdida de vidas o impunidad)**. La matriz de confusión demuestra científicamente que el sistema prefiere enviar una patrulla de más (FP) a dejar desamparada una escena del crimen violento (FN). El $F_2\text{-Score}$ respalda matemáticamente esta decisión al darle el doble de peso al Recall sobre la Precisión.
-
-Aquí tienes el siguiente apartado para tu README.md. Este bloque detalla las métricas de evaluación del modelo basándose estrictamente en el reporte de clasificación final obtenido en tu notebook, explicando el significado matemático y la justificación de su uso en el contexto del despacho de seguridad de la CDMX.
+> 💡 **Conclusión para el README:** En seguridad pública, **un Falso Positivo implica un desgaste controlado de unidades, pero un Falso Negativo es fatal (pérdida de vidas)**. La matriz de confusión demuestra científicamente que el sistema prefiere enviar una patrulla de verificación extra (8,967 Falsos Positivos) a cambio de rescatar y asegurar la atención inmediata de 11,612 delitos graves reales. El $F_2\text{-Score}$ respalda matemáticamente esta decisión al darle un peso crítico al Recall sobre la Precisión.
 
 Markdown
 ## 📐 Cálculo e Interpretación de Métricas
