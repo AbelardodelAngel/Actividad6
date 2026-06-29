@@ -55,6 +55,8 @@ Con base en la última evaluación realizada sobre el set de validación (24,000
 | **Realidad: Bajo Impacto (0)** | **Verdaderos Negativos (VN): 3,033** <br>*(Casos ordinarios filtrados)* | **Falsos Positivos (FP): 8,967** <br>*(Falsas Alarmas Preventivas)* |
 | **Realidad: Alto Impacto (1)** | **Falsos Negativos (FN): 388** <br>*(Omisiones Críticas Mínimas)* | **Verdaderos Positivos (VP): 11,612** <br>*(Emergencias Capturadas)* |
 
+<img width="784" height="584" alt="image" src="https://github.com/user-attachments/assets/0070a319-5992-4411-836a-225abbed387d" />
+
 ---
 
 ### 🔍 Interpretación y Trade-Off de Negocio
@@ -119,6 +121,8 @@ Por defecto, los modelos de Machine Learning utilizan un umbral estándar de **0
 
 Sin embargo, en sistemas de seguridad y despacho de emergencias, **no todas las decisiones tienen el mismo costo**. Un error de clasificación ordinario (clasificar un robo menor como crítico) genera un desgaste operativo menor, mientras que un error crítico (clasificar un homicidio o robo con violencia como de baja prioridad) puede costar vidas humanas. Por lo tanto, implementamos un proceso formal de **Ajuste de Umbral** (*Threshold Tuning*).
 
+<img width="1184" height="584" alt="image" src="https://github.com/user-attachments/assets/81353cd1-793b-4288-a844-eb4f7ef4419c" />
+
 ### 📈 Simulación de la Curva de Decisión Operativa
 
 Para encontrar el punto óptimo que proteja a la ciudadanía sin saturar el sistema de despacho, realizamos un barrido fino de umbrales probabilísticos (de 0.1 a 0.9) evaluando el impacto directo en nuestras métricas de negocio:
@@ -136,6 +140,7 @@ A través de la experimentación automatizada en el notebook, se determinó el c
 | **0.60** (Conservador) | Alta | Bajo (~0.60) | **Peligroso:** Se ignoran demasiadas emergencias críticas reales en campo. |
 | **0.50** (Estándar) | Moderada | Moderado (~0.65) | **Subóptimo:** Comportamiento tradicional por defecto de los algoritmos. |
 | **0.40 - 0.45** (Óptimo) | Balanceada (~0.59) | **Máximo (~0.87)** | **Recomendado:** Maximiza la captura de delitos graves sin saturar las unidades. |
+
 
 ### 📋 Conclusión Metodológica para Producción
 
@@ -155,6 +160,7 @@ Estas métricas miden la capacidad del algoritmo para discriminar correctamente 
 
 La curva se construye graficando la relación dinámica entre dos indicadores clave a medida que barremos el umbral de decisión de 0.0 a 1.0:
 
+
 1. **Eje Y: Tasa de Verdaderos Positivos (TPR / Recall)**
    * *Fórmula:* $TPR = \frac{VP}{VP + FN}$
    * *Significado:* La proporción de emergencias críticas reales que el sistema logra identificar correctamente.
@@ -172,6 +178,8 @@ Para nuestro modelo final optimizado enfocado en la CDMX, el comportamiento se i
 
 * **Desempeño del Modelo:** El pipeline de LightGBM entrenado consolida un **AUC robusto (típicamente entre ~0.72 y ~0.75)**.
 * **Significado Probabilístico Extendido:** Si seleccionamos al azar un reporte de Alto Impacto real y un reporte de Bajo Impacto real de las carpetas de investigación de la CDMX, existe un **72% - 75% de probabilidad** de que el modelo asigne una puntuación de riesgo (probabilidad) más alta al caso de Alto Impacto que al de Bajo Impacto.
+
+<img width="884" height="684" alt="image" src="https://github.com/user-attachments/assets/22ee6caa-aae5-4d25-b983-87cd63a80991" />
 
 ### 📋 Conclusión Metodológica para el Negocio
 
@@ -202,6 +210,8 @@ El indicador clave utilizado para evaluar cada bloque es el **$F_2\text{-Score}$
 | **Fold 5** | $F_2\text{-Score}$ | 0.7974 | Exitoso |
 | **Métrica General** | **Promedio CV** | **0.7956** | **Desviación Estándar ($\sigma$): $\pm$ 0.0021** |
 
+<img width="984" height="483" alt="image" src="https://github.com/user-attachments/assets/78ff267c-7a07-45ee-8763-a950fd989b59" />
+
 ---
 
 ### 🔍 Interpretación Operativa de la Estabilidad
@@ -228,6 +238,8 @@ A continuación se detalla la evolución del indicador objetivo del proyecto ($F
 | **5** | **Pivote Estratégico (Binario)** | LightGBM Estándar | 0.6155 | **Salto de Calidad:** Reestructurar el problema a "Alto Impacto" rompe el estancamiento. |
 | **6** | **Modelo Campeón Final** | **LightGBM Tuned + Umbral** | **0.7956** | **Aprobado para Producción:** Logra un 87% de Recall en delitos críticos. |
 
+<img width="1279" height="583" alt="image" src="https://github.com/user-attachments/assets/11121469-2a48-4903-9546-bb73728de95b" />
+
 ---
 
 ### 🔍 Tres Hallazgos Clave de la Evolución Técnica
@@ -252,6 +264,8 @@ El experimento se diseñó bajo una estructura de muestras independientes durant
 * **Grupo A (Control):** El despacho y asignación de prioridades se ejecuta mediante la infraestructura previa (**Random Forest Base**).
 * **Grupo B (Tratamiento):** El despacho y asignación se automatiza con el nuevo modelo (**LightGBM Tuned + Umbral de Decisión Óptimo**).
 * **Métrica de Impacto Primaria:** Tiempo total de respuesta (en minutos), medido desde que ingresa la alerta al sistema hasta que la unidad es despachada con prioridad en campo.
+
+<img width="1184" height="584" alt="image" src="https://github.com/user-attachments/assets/4aacf263-a98c-4661-a51f-cf2808bf7a25" />
 
 ---
 
