@@ -122,7 +122,6 @@ Para encontrar el punto óptimo que proteja a la ciudadanía sin saturar el sist
 * **Bajar el Umbral (< 0.5):** El modelo se vuelve más "sensible" y preventivo. El *Recall* se dispara (capturamos casi todas las emergencias reales), pero la *Precisión* disminuye (aumentan las falsas alarmas operativas).
 * **Subir el Umbral (> 0.5):** El modelo se vuelve más "estricto". La *Precisión* aumenta (cuando suena una alerta, es totalmente seguro que es grave), pero el *Recall* cae drásticamente (dejamos desatendidos incidentes violentos reales).
 
----
 
 ### 🎯 Selección del Umbral Óptimo
 
