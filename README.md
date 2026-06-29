@@ -206,3 +206,33 @@ El análisis de la validación cruzada nos permite extraer dos conclusiones fund
 
 1. **Ausencia de Sobreajuste (Overfitting):** El hecho de que el rendimiento promedio en validación cruzada (**0.7956**) coincida casi milimétricamente con el puntaje del set de evaluación final (**0.7956**) confirma que el modelo tiene una excelente capacidad de generalización. No se ha memorizado el ruido del dataset.
 2. **Alta Consistencia Urbana ($\sigma = \pm 0.0021$):** La desviación estándar es extremadamente baja. Esto demuestra matemáticamente que el algoritmo es altamente robusto y estable. Traducido a la operación diaria, significa que el sistema mantendrá el mismo nivel de efectividad (~87% de detección de delitos críticos), sin importar si la llamada de emergencia proviene del norte, sur o centro de la Ciudad de México, o si ocurre en un día festivo o laboral.
+
+## 📉 Comparación con el Baseline y Evolución del Proyecto
+
+El desarrollo de este sistema de priorización de seguridad para la CDMX siguió un enfoque estrictamente científico e iterativo, monitoreado de principio a fin a través de la plataforma de MLOps (**MLflow**). Para validar el verdadero valor agregado del modelo final, se midió su rendimiento frente a las soluciones iniciales o *baselines*.
+
+### 📊 Tabla Comparativa de Experimentos Históricos
+
+A continuación se detalla la evolución del indicador objetivo del proyecto ($F_2\text{-Score}$) a lo largo de las distintas fases de arquitectura de software e ingeniería de variables:
+
+| ID | Módulo / Modelo Evaluado | Tipo de Algoritmo | Métrica Objetivo ($F_2\text{-Score}$) | Estado / Conclusión Operativa |
+| :---: | --- | --- | :---: | --- |
+| **1** | Baseline Inicial (Multiclase) | Random Forest Base | 0.4543 | **Insuficiente:** Incapaz de resolver la complejidad de 3 prioridades simultáneas. |
+| **2** | Baseline Alternativo | K-Nearest Neighbors | 0.3993 | **Rechazado:** Alto costo computacional y rendimiento deficiente. |
+| **3** | Ingeniería Avanzada v1 | Random Forest Optimizado | 0.4227 | El modelo base empeora al intentar procesar variables temporales crudas. |
+| **4** | Contexto Urbano Crudo | Random Forest + Densidad | 0.4522 | Estancamiento estructural debido a la formulación multiclase del target. |
+| **5** | **Pivote Estratégico (Binario)** | LightGBM Estándar | 0.6155 | **Salto de Calidad:** Reestructurar el problema a "Alto Impacto" rompe el estancamiento. |
+| **6** | **Modelo Campeón Final** | **LightGBM Tuned + Umbral** | **0.7956** | **Aprobado para Producción:** Logra un 87% de Recall en delitos críticos. |
+
+---
+
+### 🔍 Tres Hallazgos Clave de la Evolución Técnica
+
+#### 1. Romper el Bloqueo Estructural (El paso de 0.45 a 0.61)
+Los primeros cuatro experimentos demostraron que, sin importar cuánta ingeniería de características se aplicara, los algoritmos tradicionales (Random Forest y KNN) se encontraban estancados en un techo de **~0.45** de $F_2\text{-Score}$. El punto de inflexión consistió en cambiar la estrategia de negocio: dejar de intentar predecir tres clases abstractas y reestructurar el pipeline para resolver un problema de **Detección Binaria de Alto Impacto**. Este cambio desbloqueó el rendimiento de los árboles secuenciales, elevando la métrica a **0.6155** instantáneamente.
+
+#### 2. Superioridad Algorítmica de LightGBM
+Frente a Random Forest, el framework de Gradient Boosting de **LightGBM** demostró ser significativamente superior para modelar las variables espaciales de la CDMX. Al construir árboles de decisión de manera secuencial (corrigiendo los errores de los árboles anteriores de forma iterativa) y agregando la característica de `densidad_alto_impacto`, LightGBM logró explotar patrones geográficos locales muy finos que el algoritmo base ignoraba por completo.
+
+#### 3. Optimización hacia la Meta Institucional (El estirón final a ~0.80)
+El salto final desde el 0.61 hasta rozar el **0.80** se logró mediante el ajuste fino de hiperparámetros (*Hyperparameter Tuning*) y la manipulación del umbral de decisión operativo. Al introducir un peso penalizador (`scale_pos_weight=1.5`) y calibrar el umbral de probabilidad, el modelo enfocó toda su capacidad matemática en reducir los Falsos Negativos, consolidando un incremento neto de rendimiento del **75.1%** respecto al baseline inicial del proyecto.
