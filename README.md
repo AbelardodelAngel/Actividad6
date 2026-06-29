@@ -49,6 +49,7 @@ En nuestro último experimento con un set de validación balanceado de **24,000 
 | **Realidad: Bajo Impacto (0)** | **Verdaderos Negativos (VN): 4,920** <br>*(75% Especificidad)* | **Falsos Positivos (FP): 7,080** <br>*(Falsas Alarmas)* |
 | **Realidad: Alto Impacto (1)** | **Falsos Negativos (FN): 1,560** <br>*(Omisiones Críticas)* | **Verdaderos Positivos (VP): 10,440** <br>*(87% Recall)* |
 
+<img width="784" height="584" alt="image" src="https://github.com/user-attachments/assets/70e13a77-6f65-4a7f-9cb1-95a7de2aad20" />
 ---
 
 ### 🔍 Interpretación y Trade-Off de Negocio
