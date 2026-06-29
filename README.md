@@ -107,4 +107,36 @@ A continuación se desglosan los resultados obtenidos en el set de validación (
 * **Definición:** Una variante del F-Score que penaliza con **el doble de severidad los Falsos Negativos** que los Falsos Positivos. Su fórmula matemática es:
 $$F_2 = \frac{5 \cdot \text{Precision} \cdot \text{Recall}}{4 \cdot \text{Precision} + \text{Recall}}$$
 * **Resultado del Modelo Tuned:** **0.7956**
-* **Significado Práctico:** Al consolidar un valor cercano al **80%**, esta métrica avala científicamente que las
+* **Significado Práctico:** Al consolidar un valor cercano al **80%**, esta métrica avala científicamente que las modificaciones hechas al algoritmo (hiperparámetros, umbrales y adición de la densidad delictiva por zona) lograron el objetivo institucional: construir un sistema robusto que minimiza la omisión de auxilio ante delitos violentos en la Ciudad de México.
+
+## 🎛️ Ajuste de Umbral de Clasificación
+
+Por defecto, los modelos de Machine Learning utilizan un umbral estándar de **0.5** para separar las predicciones binarias. Si la probabilidad de que un incidente sea de Alto Impacto es de 0.51, se etiqueta como `1`; si es de 0.49, se etiqueta como `0`. 
+
+Sin embargo, en sistemas de seguridad y despacho de emergencias, **no todas las decisiones tienen el mismo costo**. Un error de clasificación ordinario (clasificar un robo menor como crítico) genera un desgaste operativo menor, mientras que un error crítico (clasificar un homicidio o robo con violencia como de baja prioridad) puede costar vidas humanas. Por lo tanto, implementamos un proceso formal de **Ajuste de Umbral** (*Threshold Tuning*).
+
+### 📈 Simulación de la Curva de Decisión Operativa
+
+Para encontrar el punto óptimo que proteja a la ciudadanía sin saturar el sistema de despacho, realizamos un barrido fino de umbrales probabilísticos (de 0.1 a 0.9) evaluando el impacto directo en nuestras métricas de negocio:
+
+* **Bajar el Umbral (< 0.5):** El modelo se vuelve más "sensible" y preventivo. El *Recall* se dispara (capturamos casi todas las emergencias reales), pero la *Precisión* disminuye (aumentan las falsas alarmas operativas).
+* **Subir el Umbral (> 0.5):** El modelo se vuelve más "estricto". La *Precisión* aumenta (cuando suena una alerta, es totalmente seguro que es grave), pero el *Recall* cae drásticamente (dejamos desatendidos incidentes violentos reales).
+
+---
+
+### 🎯 Selección del Umbral Óptimo
+
+A través de la experimentación automatizada en el notebook, se determinó el comportamiento de las métricas en los puntos clave de decisión:
+
+| Umbral Evaluado | Precisión | Recall (Sensibilidad) | Impacto Operativo en el C5 / Despacho |
+| :---: | :---: | :---: | --- |
+| **0.60** (Conservador) | Alta | Bajo (~0.60) | **Peligroso:** Se ignoran demasiadas emergencias críticas reales en campo. |
+| **0.50** (Estándar) | Moderada | Moderado (~0.65) | **Subóptimo:** Comportamiento tradicional por defecto de los algoritmos. |
+| **0.40 - 0.45** (Óptimo) | Balanceada (~0.59) | **Máximo (~0.87)** | **Recomendado:** Maximiza la captura de delitos graves sin saturar las unidades. |
+
+### 📋 Conclusión Metodológica para Producción
+
+El umbral óptimo final fue seleccionado priorizando el **$F_2\text{-Score}$**, el cual asigna el doble de peso al *Recall* sobre la *Precisión*. 
+
+Mover el umbral de decisión hacia la sensibilidad preventiva le permite al pipeline de LightGBM consolidar su **87% de Recall en la Clase 1**. Esto significa que, ante la menor duda estadística de que un patrón espacial o temporal corresponda a un delito violento en la CDMX, el sistema priorizará de inmediato la alerta para la asignación rápida de una patrulla.
+
