@@ -66,3 +66,45 @@ El modelo fue calibrado intencionalmente utilizando una penalización de peso (`
 * **Interpretación:** Al mover el umbral para no perder llamadas de auxilio críticas, el modelo se volvió "preventivo" o "sensible". Esto significa que de cada 100 alertas que el sistema etiqueta como críticas, **59 son emergencias reales de alto impacto** y 41 resultan ser incidentes menores. 
 
 > 💡 **Conclusión para el README:** En seguridad pública, **un Falso Positivo es costoso (desgaste de unidades), pero un Falsos Negativo es fatal (pérdida de vidas o impunidad)**. La matriz de confusión demuestra científicamente que el sistema prefiere enviar una patrulla de más (FP) a dejar desamparada una escena del crimen violento (FN). El $F_2\text{-Score}$ respalda matemáticamente esta decisión al darle el doble de peso al Recall sobre la Precisión.
+
+Aquí tienes el siguiente apartado para tu README.md. Este bloque detalla las métricas de evaluación del modelo basándose estrictamente en el reporte de clasificación final obtenido en tu notebook, explicando el significado matemático y la justificación de su uso en el contexto del despacho de seguridad de la CDMX.
+
+Markdown
+## 📐 Cálculo e Interpretación de Métricas
+
+Para evaluar científicamente el rendimiento del clasificador final, no nos limitamos al *Accuracy* global. En problemas de seguridad ciudadana con datos balanceados por muestreo, es imperativo analizar el comportamiento individual de cada clase a través de un espectro completo de métricas industriales.
+
+A continuación se desglosan los resultados obtenidos en el set de validación (24,000 incidentes analizados):
+
+### 📊 Tabla General de Métricas de Clasificación
+
+| Clase | Concepto Operativo | Precision | Recall (Sensibilidad) | F1-Score | Support (Casos) |
+| :---: | --- | :---: | :---: | :---: | :---: |
+| **0** | Bajo Impacto (Prioridad Ordinaria) | 0.75 | 0.41 | 0.53 | 12,000 |
+| **1** | Alto Impacto (Emergencia Crítica) | 0.59 | 0.87 | 0.70 | 12,000 |
+| **-** | **Rendimiento Global (Accuracy)** | - | - | **0.64** | 24,000 |
+
+---
+
+### 🔍 Interpretación Detallada de los Indicadores
+
+#### 1. Precision (Precisión)
+* **Definición:** De todos los incidentes que el modelo etiquetó como una prioridad, ¿cuántos lo eran realmente?
+* **Resultado para Alto Impacto (Clase 1):** **0.59**
+* **Significado Práctico:** Cuando el sistema emite una alerta de Alto Impacto, el **59% de las veces se trata de una emergencia crítica real** (homicidio, robo con violencia, etc.). El 41% restante corresponde a incidentes de menor gravedad que recibieron un despacho prioritario de forma preventiva.
+
+#### 2. Recall / Sensitivity (Sensibilidad)
+* **Definición:** De todas las emergencias críticas reales que ocurrieron en la calle, ¿cuántas logró detectar el modelo?
+* **Resultado para Alto Impacto (Clase 1):** **0.87**
+* **Significado Práctico:** El modelo tiene una **efectividad del 87% para capturar los delitos más graves de la CDMX**. Esto garantiza que la gran mayoría de las llamadas críticas de la ciudadanía se canalizarán inmediatamente sin quedarse rezagadas en la cola de espera de despacho.
+
+#### 3. F1-Score
+* **Definición:** Es la media armónica balanceada entre la Precisión y el Recall.
+* **Resultado para Alto Impacto (Clase 1):** **0.70**
+* **Significado Práctico:** Proporciona una métrica de equilibrio estándar (atribuyendo el mismo peso a ambos errores) que sirve como línea base de comparación técnica frente a otros modelos clásicos de la literatura.
+
+#### 4. F2-Score (Métrica de Negocio de Selección)
+* **Definición:** Una variante del F-Score que penaliza con **el doble de severidad los Falsos Negativos** que los Falsos Positivos. Su fórmula matemática es:
+$$F_2 = \frac{5 \cdot \text{Precision} \cdot \text{Recall}}{4 \cdot \text{Precision} + \text{Recall}}$$
+* **Resultado del Modelo Tuned:** **0.7956**
+* **Significado Práctico:** Al consolidar un valor cercano al **80%**, esta métrica avala científicamente que las
